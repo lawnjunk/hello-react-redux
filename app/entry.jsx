@@ -63,12 +63,11 @@ let delListNote = (list, note) => ({
   payload: note,
 })
 
-// REDUCER
+// REDUCERs
 let notesReducer = (state=[], action) => {
-  
   switch (action.type){
     case NOTE_ADD:
-      return state.concat([action.payload]);
+      return [action.payload].concat(state);
     case NOTE_DEL:
       return state.filter(note => !(note == action.payload));
     default:
@@ -79,7 +78,7 @@ let notesReducer = (state=[], action) => {
 let listsReducer = (state=[], action) => {
   switch(action.type) {
     case LIST_ADD:
-      return state.concat([action.payload]);
+      return [action.payload].concat(state);
     case LIST_DEL:
       return state.filter(list => !(list == action.payload));
     case LIST_ADD_NOTE:
@@ -108,7 +107,6 @@ let reducer = (state=fetchStore(), action) => {
 };
 
 let store = createStore(reducer);
-
 
 // dumb component
 let NoteItem = ({dispatch, note, list}) => {
