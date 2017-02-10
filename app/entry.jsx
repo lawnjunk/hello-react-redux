@@ -4,9 +4,9 @@ import {v1} from 'uuid';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {createStore} from 'redux';
+import throttle from 'lodash/throttle';
 import {Provider, connect} from 'react-redux';
 import {Router, Route, browserHistory} from 'react-router';
-
 
 // ACTION CONSTANTS
 const NOTE_ADD = 'NOTE_ADD';
@@ -16,6 +16,15 @@ const LIST_ADD = 'LIST_ADD';
 const LIST_ADD_NOTE = 'LIST_ADD_NOTE';
 const LIST_DEL_NOTE = 'LIST_DEL_NOTE';
 const LIST_DEL = 'LIST_DEL';
+
+let fetchStore = () => {
+  try {
+    let result = JSON.parse(localStorage.state);
+    return result ? result : {};
+  } catch (e) {
+    return {};
+  }
+}
 
 // MODELS
 let createList = (title) => ({id: v1(), notes: [], title});
@@ -56,6 +65,7 @@ let delListNote = (list, note) => ({
 
 // REDUCER
 let notesReducer = (state=[], action) => {
+  
   switch (action.type){
     case NOTE_ADD:
       return state.concat([action.payload]);
@@ -89,7 +99,7 @@ let listsReducer = (state=[], action) => {
   }
 };
 
-let reducer = (state={}, action) => {
+let reducer = (state=fetchStore(), action) => {
   console.log(`(ACTION_TYPE) ${action.type}`);
   return {
     notes: notesReducer(state.notes, action),
@@ -98,9 +108,7 @@ let reducer = (state={}, action) => {
 };
 
 let store = createStore(reducer);
-store.subscribe(() => {
-  console.log('____NEW_STATE______', store.getState());
-});
+
 
 // dumb component
 let NoteItem = ({dispatch, note, list}) => {
@@ -238,6 +246,15 @@ const App = () => (
   </div>
 );
 
+store.subscribe( throttle(() => {
+    console.log('hello world');
+    window.localStorage.state = JSON.stringify(store.getState());
+  }, 1000))
+
+store.subscribe(() => {
+  console.log('____NEW_STATE______', store.getState());
+});
+
 // this is a slow and shitty way to render
 // need to research better way to deal
 ReactDOM.render(
@@ -245,5 +262,8 @@ ReactDOM.render(
     <App/>
   </Provider>,
   document.getElementById('root'));
+
+// trigger a dispatch to get the initial state
+store.dispatch({type: 'NOOP'});
 
 
